@@ -23,31 +23,27 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                // ❌ Disable CSRF (required for APIs)
                 .csrf(csrf -> csrf.disable())
 
-                // ❌ Stateless session (JWT based)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // =========================
-                        // ✅ PUBLIC ENDPOINTS
-                        // =========================
+                        // PUBLIC APIs
                         .requestMatchers("/api/auth/**").permitAll()
 
+                        // SWAGGER (IMPORTANT FOR RAILWAY)
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
-                                "/swagger-resources/**"
+                                "/swagger-resources/**",
+                                "/webjars/**"
                         ).permitAll()
 
-                        // =========================
-                        // ✅ SECURED ENDPOINTS
-                        // =========================
+                        // SECURED APIs
                         .requestMatchers(HttpMethod.GET, "/api/products/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/products/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("ADMIN")
@@ -55,13 +51,10 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/orders/**").authenticated()
 
-                        // =========================
-                        // ❌ EVERYTHING ELSE SECURED
-                        // =========================
-                        .anyRequest().authenticated()
+                        // DEFAULT
+                        .anyRequest().permitAll()
                 );
 
-        // ✅ JWT FILTER
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
