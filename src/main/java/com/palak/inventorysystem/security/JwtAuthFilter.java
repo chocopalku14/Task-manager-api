@@ -33,10 +33,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // ✅ SKIP PUBLIC ROUTES
+        // ✅ Skip public endpoints
         if (path.startsWith("/api/auth")
                 || path.startsWith("/swagger-ui")
-                || path.startsWith("/v3/api-docs")) {
+                || path.startsWith("/v3/api-docs")
+                || path.startsWith("/swagger-resources")) {
+
             filterChain.doFilter(request, response);
             return;
         }
@@ -46,6 +48,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String token = null;
         String username = null;
 
+        // ✅ Extract token safely
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
 
@@ -56,8 +59,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
         }
 
-        if (username != null &&
-                SecurityContextHolder.getContext().getAuthentication() == null) {
+        // ✅ Authenticate user if valid
+        if (username != null
+                && token != null
+                && SecurityContextHolder.getContext().getAuthentication() == null) {
 
             UserDetails userDetails =
                     customUserDetailsService.loadUserByUsername(username);
