@@ -33,7 +33,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // ✅ Skip public endpoints
+        // ✅ ALWAYS SKIP PUBLIC ROUTES
         if (path.startsWith("/api/auth")
                 || path.startsWith("/swagger-ui")
                 || path.startsWith("/v3/api-docs")
@@ -48,18 +48,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String token = null;
         String username = null;
 
-        // ✅ Extract token safely
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
 
             try {
                 username = jwtUtil.extractUsername(token);
             } catch (Exception e) {
-                System.out.println("Invalid JWT Token: " + e.getMessage());
+                System.out.println("Invalid JWT: " + e.getMessage());
             }
         }
 
-        // ✅ Authenticate user if valid
         if (username != null
                 && token != null
                 && SecurityContextHolder.getContext().getAuthentication() == null) {

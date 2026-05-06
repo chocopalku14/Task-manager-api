@@ -23,33 +23,41 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
+                // ❌ Disable CSRF (required for APIs)
                 .csrf(csrf -> csrf.disable())
+
+                // ❌ Stateless session (JWT based)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+
                 .authorizeHttpRequests(auth -> auth
 
-
+                        // =========================
+                        // ✅ PUBLIC ENDPOINTS
+                        // =========================
                         .requestMatchers("/api/auth/**").permitAll()
 
-
                         .requestMatchers(
-                                "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
+                                "/v3/api-docs/**",
                                 "/swagger-resources/**"
                         ).permitAll()
 
-
+                        // =========================
+                        // ✅ SECURED ENDPOINTS
+                        // =========================
                         .requestMatchers(HttpMethod.GET, "/api/products/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/products/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
 
-
                         .requestMatchers("/api/orders/**").authenticated()
 
-
+                        // =========================
+                        // ❌ EVERYTHING ELSE SECURED
+                        // =========================
                         .anyRequest().authenticated()
                 );
 
