@@ -31,12 +31,21 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
+        String path = request.getRequestURI();
+
+        // ✅ SKIP PUBLIC ROUTES
+        if (path.startsWith("/api/auth")
+                || path.startsWith("/swagger-ui")
+                || path.startsWith("/v3/api-docs")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         final String authHeader = request.getHeader("Authorization");
 
         String token = null;
         String username = null;
 
-        // ✅ Extract token safely
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
 
@@ -47,7 +56,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
         }
 
-        // ✅ Set authentication if valid
         if (username != null &&
                 SecurityContextHolder.getContext().getAuthentication() == null) {
 
